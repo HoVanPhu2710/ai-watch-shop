@@ -19,9 +19,9 @@ echo [3/4] Starting AI Python server (Flask) on port 5001...
 start "AI Server" cmd /k "cd /d %~dp0ai-recommend && call setup_and_start.bat"
 TIMEOUT /T 2 >nul
 
-REM -- 4. Start Scheduler (window 4), FIXED: no label inside bat for new process
+REM -- 4. Start Scheduler (window 4)
 echo [4/4] Starting Scheduler for auto training/generation...
-start "Scheduler" cmd /k "cd /d %~dp0ai-recommend && where python >nul 2>nul && python scheduler.py & pause"
+start "Scheduler" cmd /k "cd /d %~dp0ai-recommend && call start_scheduler.bat"
 echo All servers started in new windows.
 echo. & pause
 exit /b
