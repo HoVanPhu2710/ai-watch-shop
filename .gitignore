@@ -1,0 +1,147 @@
+# ===== Monorepo Global Ignores =====
+
+# OS / Editor
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.history/
+*.code-workspace
+.vscode/
+.idea/
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.cache/
+
+# Virtual environments
+.venv/
+.venv
+venv/
+venv
+env/
+ENV/
+.env
+.env.*
+.env.bak/
+venv.bak/
+rasaenv/
+.python-version
+
+# Logs
+logs/
+*.log
+
+# Packaging / build
+build/
+dist/
+downloads/
+.eggs/
+.eggs
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+__pypackages__/
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Testing / coverage
+.pytest_cache/
+.pytest_cache
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Type checking / static analysis
+.mypy_cache/
+.pyre/
+.pytype/
+.dmypy.json
+dmypy.json
+
+# Jupyter
+.ipynb_checkpoints/
+.ipynb_checkpoints
+
+# Docs
+docs/_build/
+/site
+
+# Data & model artifacts (common)
+models/
+models/**
+data/
+data/**
+checkpoints/
+artifacts/
+outputs/
+runs/
+wandb/
+mlruns/
+tensorboard/
+tb_logs/
+notebooks/
+experiments/
+reports/
+
+# File types often produced by ML
+*.pkl
+*.joblib
+*.sav
+*.npz
+*.npy
+*.ckpt
+*.pt
+*.pth
+*.h5
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Compiled native extensions
+*.so
+*.pyd
+*.dll
+*.dylib
+
+# Tool caches
+**/.ruff_cache/
+**/.pytest_cache/
+.dvc/
+.dvcignore
+.mlem/
+
+# Temporary files
+*.tmp
+*.temp
+
+# ===== Rasa-specific =====
+.rasa/
+# Rasa models and archives
+models/
+*.tar.gz
+
+# Example/test data that shouldn't be committed
+chatbot2/data/test_stories.yml
+chatbot2/data/test_nlu.yml
+
+# Sensitive Rasa files (usually filled locally)
+chatbot2/credentials.yml
+chatbot2/endpoints.yml
+
+# ===== Project-specific notes =====
+# If you need to keep some data/models, replace folder ignores with more specific paths.
+# On Windows, prefer the provided .bat scripts; on Linux/macOS, use the matching .sh scripts.

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-10-30T21:37:06.688941",
+  "models": {
+    "collaborative_filtering": {
+      "final_train_loss": 0.09407306152087969,
+      "final_val_loss": 0.05037036926456541,
+      "final_rmse": 0.36380486332417666,
+      "epochs": 50
+    },
+    "content_based_filtering": {
+      "final_train_loss": 0.2269666691710191,
+      "final_val_loss": 0.1327140756938666,
+      "final_accuracy": 0.9018534809879871,
+      "epochs": 50
+    },
+    "hybrid_model": {
+      "final_train_loss": 0.09198014215733503,
+      "final_val_loss": 0.10344375978481282,
+      "final_ndcg": 0.8736441931910129,
+      "epochs": 50
+    }
+  }
+}
