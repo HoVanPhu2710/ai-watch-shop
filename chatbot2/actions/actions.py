@@ -577,107 +577,266 @@ class ActionSearchProducts(Action):
                 # This is a filter request from FE metadata (e.g., category_id), use filter action instead
                 return ActionFilterProducts().run(dispatcher, tracker, domain)
             
-            # Extract search terms from common patterns
-            search_terms = []
-            
-            # Extract brand names
-            brands = ["rolex", "casio", "dior", "masala", "omega", "tissot", "citizen"]
-            for brand in brands:
-                if brand in user_text:
-                    search_terms.append(brand)
-            
-            # Extract category names  
-            categories = ["nam", "nữ", "nam nữ", "học sinh", "sinh viên", "phú", "olympia12"]
-            for category in categories:
-                if category in user_text:
-                    search_terms.append(category)
-            
-            # Extract color names
-            colors = ["đen", "trắng", "vàng", "bạc", "xanh", "đỏ", "hồng", "tím", "cam", "nâu", "xám"]
-            for color in colors:
-                if color in user_text:
-                    search_terms.append(color)
-            
-            # Extract material names
-            materials = ["titan", "titanium", "sắt", "kim cương", "da", "nhựa", "cao su"]
-            for material in materials:
-                if material in user_text:
-                    search_terms.append(material)
-            
-            # Extract movement types
-            movements = ["máy pin", "máy cơ", "máy bền", "automatic", "quartz"]
-            for movement in movements:
-                if movement in user_text:
-                    search_terms.append(movement)
-            
-            # If no specific terms found, use general search terms
-            if not search_terms:
-                if "đồng hồ" in user_text:
-                    search_terms = ["đồng hồ"]
-                else:
-                    # Use the whole user text as search term
-                    search_terms = [user_text.strip()]
-            
-            # Use the first search term
-            search_query = search_terms[0] if search_terms else "đồng hồ"
-            
             # Get token from latest message metadata
             token = latest_message.get("metadata", {}).get("token")
             
             headers = {"Content-Type": "application/json"}
             if token:
                 headers["Authorization"] = f"Bearer {token}"
-            
-            # Call search API
-            response = requests.get(f"http://localhost:8080/v1/search?page=1&limit=12&q={search_query}", 
-                                 headers=headers, timeout=10)
-            response.raise_for_status()
-            
-            data = response.json()
-            watches = data.get("watches", {}).get("items", [])
-            
-            if not watches:
-                dispatcher.utter_message(text=f"Không tìm thấy sản phẩm nào với từ khóa '{search_query}'.")
+
+            # Helper: fetch list and match by name appearing in user_text
+            def fetch_items(url_key: Text, key_path_items: List[Text]) -> List[Dict[str, Any]]:
+                resp = requests.get(url_key, headers=headers, timeout=10)
+                resp.raise_for_status()
+                data_json = resp.json()
+                data_cursor = data_json
+                for k in key_path_items:
+                    data_cursor = data_cursor.get(k, {}) if isinstance(data_cursor, dict) else {}
+                if isinstance(data_cursor, list):
+                    return data_cursor
+                if isinstance(data_cursor, dict):
+                    # support {rows: [...]}
+                    if "rows" in data_cursor and isinstance(data_cursor.get("rows"), list):
+                        return data_cursor.get("rows", [])
                 return []
 
-            # Build cards payload for FE
-            cards: List[Dict[str, Any]] = []
-            for watch in watches:
-                cards.append({
-                    "id": watch.get("id"),
-                    "code": watch.get("code"),
-                    "name": watch.get("name"),
-                    "description": watch.get("description"),
-                    "model": watch.get("model"),
-                    "caseMaterial": watch.get("case_material"),
-                    "caseSize": watch.get("case_size"),
-                    "strapSize": watch.get("strap_size"),
-                    "gender": watch.get("gender"),
-                    "waterResistance": watch.get("water_resistance"),
-                    "releaseDate": watch.get("release_date"),
-                    "sold": watch.get("sold"),
-                    "basePrice": watch.get("base_price"),
-                    "rating": watch.get("rating"),
-                    "status": watch.get("status"),
-                    "thumbnail": watch.get("thumbnail"),
-                    "slider": (watch.get("slider") or "").split(",") if watch.get("slider") else [],
-                    "brandId": watch.get("brand_id"),
-                    "brandName": watch.get("brand_name"),
-                    "categoryId": watch.get("category_id"),
-                    "categoryName": watch.get("category_name"),
-                    "movementTypeId": watch.get("movement_type_id"),
-                    "movementTypeName": watch.get("movement_type_name"),
-                    "createdAt": watch.get("created_at"),
-                    "updatedAt": watch.get("updated_at")
-                })
+            def find_first_match(items: List[Dict[str, Any]], field: Text = "name", synonyms: Dict[str, str] = None) -> Dict[str, Any]:
+                text = user_text
+                for it in items:
+                    name_val = (it.get(field) or "").lower()
+                    if not name_val:
+                        continue
+                    if name_val in text:
+                        return it
+                    # try synonyms mapping
+                    if synonyms:
+                        for syn, canon in synonyms.items():
+                            if syn in text and canon == name_val:
+                                return it
+                return {}
 
-            dispatcher.utter_message(
-                text=f"Đây là kết quả tìm kiếm cho '{search_query}':",
-                custom={
-                    "type": "cards",
-                    "cards": cards
-                }
-            )
+            # Synonyms normalization for matching
+            color_synonyms = {
+                "gold": "vàng",
+                "vàng gold": "vàng",
+                "màu gold": "vàng",
+                "mạ vàng": "vàng",
+            }
+
+            # Gender parse
+            gender_code = None
+            if " nam" in f" {user_text}" or user_text.startswith("nam"):
+                gender_code = "0"
+            if " nữ" in f" {user_text}" or user_text.startswith("nữ"):
+                gender_code = "1"
+
+            # Style tokens (sent to q if present)
+            style_tokens = []
+            for st in ["cổ điển", "classic", "vintage", "retro", "thể thao", "hiện đại"]:
+                if st in user_text:
+                    style_tokens.append(st)
+
+            # Try dynamic resolutions
+            brand = {}
+            category = {}
+            color = {}
+            movement_type = {}
+            strap_material = {}
+
+            try:
+                brands_list = fetch_items("http://localhost:8080/v1/brands", ["brands", "items"])
+                brand = find_first_match(brands_list)
+            except Exception:
+                pass
+
+            try:
+                categories_list = fetch_items("http://localhost:8080/v1/categorys", ["categorys", "items"])
+                category = find_first_match(categories_list)
+            except Exception:
+                pass
+
+            try:
+                colors_list = fetch_items("http://localhost:8080/v1/colors", ["colors", "items"])
+                color = find_first_match(colors_list, synonyms=color_synonyms)
+                if not color:
+                    # heuristic for gold if API color name differs
+                    if "gold" in user_text or "vàng gold" in user_text or "mạ vàng" in user_text:
+                        for c in colors_list:
+                            n = (c.get("name") or "").lower()
+                            if "vàng" in n or "gold" in n:
+                                color = c
+                                break
+            except Exception:
+                pass
+
+            try:
+                movement_types_list = fetch_items("http://localhost:8080/v1/movement-type", ["movementTypes", "items"])
+                movement_type = find_first_match(movement_types_list)
+                # quartz/automatic synonyms
+                if not movement_type:
+                    for it in movement_types_list:
+                        n = (it.get("name") or "").lower()
+                        if ("quartz" in user_text and ("quartz" in n or "máy pin" in n)) or 
+                           ("automatic" in user_text and ("automatic" in n or "máy cơ" in n)):
+                            movement_type = it
+                            break
+            except Exception:
+                pass
+
+            try:
+                strap_materials_list = fetch_items("http://localhost:8080/v1/strap-materials", ["strapMaterials", "rows"])
+                strap_material = find_first_match(strap_materials_list)
+                if not strap_material and "kim loại" in user_text:
+                    for it in strap_materials_list:
+                        n = (it.get("name") or "").lower()
+                        if "kim" in n or "thép" in n:
+                            strap_material = it
+                            break
+            except Exception:
+                pass
+
+            # If we recognized any structured filters, build filter params; else fallback to q-only
+            any_filter = any([
+                brand.get("id"), category.get("id"), color.get("id"), movement_type.get("id"), strap_material.get("id"), gender_code is not None, style_tokens
+            ])
+
+            if any_filter:
+                params = ["page=1", "limit=12"]
+                if brand.get("id"):
+                    params.append(f"brand_id__in={brand.get('id')}")
+                if category.get("id"):
+                    params.append(f"category_id__in={category.get('id')}")
+                if color.get("id"):
+                    params.append(f"color_id__in={color.get('id')}")
+                if movement_type.get("id"):
+                    params.append(f"movement_type_id__in={movement_type.get('id')}")
+                if strap_material.get("id"):
+                    params.append(f"strap_material_id__in={strap_material.get('id')}")
+                if gender_code is not None:
+                    params.append(f"gender__in={gender_code}")
+
+                q_fragments = style_tokens[:]
+                # also add extra tokens that are not IDs, e.g., "đồng hồ" if present to aid search
+                if "đồng hồ" in user_text:
+                    q_fragments.append("đồng hồ")
+                q_combined = " ".join(sorted(set(q_fragments)))
+                if q_combined:
+                    params.append(f"q={q_combined}")
+
+                query_string = "&".join(params)
+                response = requests.get(f"http://localhost:8080/v1/search?{query_string}", headers=headers, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+                watches = data.get("watches", {}).get("items", [])
+
+                if not watches:
+                    human_desc = []
+                    if brand.get("name"): human_desc.append(f"thương hiệu {brand.get('name')}")
+                    if category.get("name"): human_desc.append(f"danh mục {category.get('name')}")
+                    if color.get("name"): human_desc.append(f"màu {color.get('name')}")
+                    if movement_type.get("name"): human_desc.append(f"loại máy {movement_type.get('name')}")
+                    if strap_material.get("name"): human_desc.append(f"dây {strap_material.get('name')}")
+                    if gender_code is not None: human_desc.append("giới tính nam" if gender_code == "0" else "giới tính nữ")
+                    if style_tokens: human_desc.append(", ".join(style_tokens))
+                    desc = ", ".join(human_desc) or "bộ lọc"
+                    dispatcher.utter_message(text=f"Không tìm thấy sản phẩm phù hợp với {desc}.")
+                    return []
+
+                cards: List[Dict[str, Any]] = []
+                for watch in watches:
+                    cards.append({
+                        "id": watch.get("id"),
+                        "code": watch.get("code"),
+                        "name": watch.get("name"),
+                        "description": watch.get("description"),
+                        "model": watch.get("model"),
+                        "caseMaterial": watch.get("case_material"),
+                        "caseSize": watch.get("case_size"),
+                        "strapSize": watch.get("strap_size"),
+                        "gender": watch.get("gender"),
+                        "waterResistance": watch.get("water_resistance"),
+                        "releaseDate": watch.get("release_date"),
+                        "sold": watch.get("sold"),
+                        "basePrice": watch.get("base_price"),
+                        "rating": watch.get("rating"),
+                        "status": watch.get("status"),
+                        "thumbnail": watch.get("thumbnail"),
+                        "slider": (watch.get("slider") or "").split(",") if watch.get("slider") else [],
+                        "brandId": watch.get("brand_id"),
+                        "brandName": watch.get("brand_name"),
+                        "categoryId": watch.get("category_id"),
+                        "categoryName": watch.get("category_name"),
+                        "movementTypeId": watch.get("movement_type_id"),
+                        "movementTypeName": watch.get("movement_type_name"),
+                        "createdAt": watch.get("created_at"),
+                        "updatedAt": watch.get("updated_at")
+                    })
+
+                desc_parts = []
+                if brand.get("name"): desc_parts.append(f"thương hiệu {brand.get('name')}")
+                if category.get("name"): desc_parts.append(f"danh mục {category.get('name')}")
+                if color.get("name"): desc_parts.append(f"màu {color.get('name')}")
+                if movement_type.get("name"): desc_parts.append(f"loại máy {movement_type.get('name')}")
+                if strap_material.get("name"): desc_parts.append(f"dây {strap_material.get('name')}")
+                if gender_code is not None: desc_parts.append("nam" if gender_code == "0" else "nữ")
+                if style_tokens: desc_parts.append(", ".join(style_tokens))
+                filter_text = ", ".join([p for p in desc_parts if p]) or "bộ lọc"
+
+                dispatcher.utter_message(
+                    text=f"Kết quả lọc theo {filter_text}:",
+                    custom={
+                        "type": "cards",
+                        "cards": cards
+                    }
+                )
+
+            else:
+                # Fallback: pure q search like original
+                search_query = "đồng hồ" if "đồng hồ" in user_text else (user_text.strip() or "đồng hồ")
+                response = requests.get(f"http://localhost:8080/v1/search?page=1&limit=12&q={search_query}", headers=headers, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+                watches = data.get("watches", {}).get("items", [])
+                if not watches:
+                    dispatcher.utter_message(text=f"Không tìm thấy sản phẩm nào với từ khóa '{search_query}'.")
+                    return []
+                cards: List[Dict[str, Any]] = []
+                for watch in watches:
+                    cards.append({
+                        "id": watch.get("id"),
+                        "code": watch.get("code"),
+                        "name": watch.get("name"),
+                        "description": watch.get("description"),
+                        "model": watch.get("model"),
+                        "caseMaterial": watch.get("case_material"),
+                        "caseSize": watch.get("case_size"),
+                        "strapSize": watch.get("strap_size"),
+                        "gender": watch.get("gender"),
+                        "waterResistance": watch.get("water_resistance"),
+                        "releaseDate": watch.get("release_date"),
+                        "sold": watch.get("sold"),
+                        "basePrice": watch.get("base_price"),
+                        "rating": watch.get("rating"),
+                        "status": watch.get("status"),
+                        "thumbnail": watch.get("thumbnail"),
+                        "slider": (watch.get("slider") or "").split(",") if watch.get("slider") else [],
+                        "brandId": watch.get("brand_id"),
+                        "brandName": watch.get("brand_name"),
+                        "categoryId": watch.get("category_id"),
+                        "categoryName": watch.get("category_name"),
+                        "movementTypeId": watch.get("movement_type_id"),
+                        "movementTypeName": watch.get("movement_type_name"),
+                        "createdAt": watch.get("created_at"),
+                        "updatedAt": watch.get("updated_at")
+                    })
+
+                dispatcher.utter_message(
+                    text=f"Đây là kết quả tìm kiếm cho '{search_query}':",
+                    custom={
+                        "type": "cards",
+                        "cards": cards
+                    }
+                )
 
         except requests.exceptions.RequestException as e:
             # Fallback to mock cards on API error
@@ -748,6 +907,8 @@ class ActionFilterProducts(Action):
             strap_material_id = metadata.get("strap_material_id") or metadata.get("material_id")
             gender = metadata.get("gender")
             rating_min = metadata.get("rating_min")
+            # Optional free-text query to combine with id filters
+            q_text = metadata.get("q")
             
             # Get token from metadata
             token = metadata.get("token")
@@ -773,6 +934,8 @@ class ActionFilterProducts(Action):
                 params.append(f"gender__in={gender}")
             if rating_min is not None:
                 params.append(f"rating__gte={rating_min}")
+            if q_text:
+                params.append(f"q={q_text}")
             
             query_string = "&".join(params)
             
