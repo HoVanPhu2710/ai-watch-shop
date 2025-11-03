@@ -571,8 +571,10 @@ class ActionSearchProducts(Action):
             
             # Check if this is a button click with metadata
             metadata = latest_message.get("metadata", {})
-            if metadata and "brand_id" in metadata:
-                # This is a button click, use filter action instead
+            if metadata and any(k in metadata for k in [
+                "brand_id", "category_id", "color_id", "movement_type_id", "material_id", "strap_material_id", "gender", "rating_min"
+            ]):
+                # This is a filter request from FE metadata (e.g., category_id), use filter action instead
                 return ActionFilterProducts().run(dispatcher, tracker, domain)
             
             # Extract search terms from common patterns
@@ -742,6 +744,8 @@ class ActionFilterProducts(Action):
             category_id = metadata.get("category_id") 
             color_id = metadata.get("color_id")
             movement_type_id = metadata.get("movement_type_id")
+            # Support both legacy material_id and the correct strap_material_id
+            strap_material_id = metadata.get("strap_material_id") or metadata.get("material_id")
             gender = metadata.get("gender")
             rating_min = metadata.get("rating_min")
             
@@ -763,6 +767,8 @@ class ActionFilterProducts(Action):
                 params.append(f"color_id__in={color_id}")
             if movement_type_id:
                 params.append(f"movement_type_id__in={movement_type_id}")
+            if strap_material_id:
+                params.append(f"strap_material_id__in={strap_material_id}")
             if gender is not None:
                 params.append(f"gender__in={gender}")
             if rating_min is not None:
@@ -814,6 +820,52 @@ class ActionFilterProducts(Action):
                 })
 
             # Create filter description with names instead of IDs
+            # Try to resolve color name when color_id is provided
+            color_name_resolved = None
+            if color_id:
+                # 1) Try to get from first watch result if available
+                if watches:
+                    color_name_resolved = watches[0].get("color_name") or None
+                # 2) If not present, fetch colors list and map id -> name
+                if not color_name_resolved:
+                    try:
+                        color_headers = {"Content-Type": "application/json"}
+                        if token:
+                            color_headers["Authorization"] = f"Bearer {token}"
+                        colors_resp = requests.get("http://localhost:8080/v1/colors", headers=color_headers, timeout=10)
+                        colors_resp.raise_for_status()
+                        colors_data = colors_resp.json()
+                        colors_items = colors_data.get("colors", {}).get("items", [])
+                        for c in colors_items:
+                            if str(c.get("id")) == str(color_id):
+                                color_name_resolved = c.get("name")
+                                break
+                    except Exception:
+                        pass
+
+            # Try to resolve strap material name when material_id is provided
+            material_name_resolved = None
+            if strap_material_id:
+                # 1) Try to get from first watch result if available
+                if watches:
+                    material_name_resolved = watches[0].get("strap_material_name") or watches[0].get("material_name") or None
+                # 2) If not present, fetch strap-materials list and map id -> name
+                if not material_name_resolved:
+                    try:
+                        sm_headers = {"Content-Type": "application/json"}
+                        if token:
+                            sm_headers["Authorization"] = f"Bearer {token}"
+                        sm_resp = requests.get("http://localhost:8080/v1/strap-materials", headers=sm_headers, timeout=10)
+                        sm_resp.raise_for_status()
+                        sm_data = sm_resp.json()
+                        sm_items = sm_data.get("strapMaterials", {}).get("rows", [])
+                        for m in sm_items:
+                            if str(m.get("id")) == str(strap_material_id):
+                                material_name_resolved = m.get("name")
+                                break
+                    except Exception:
+                        pass
+
             filter_desc = []
             if brand_id:
                 # Try to get brand name from first watch result
@@ -823,10 +875,18 @@ class ActionFilterProducts(Action):
                 category_name = watches[0].get("category_name", f"ID {category_id}") if watches else f"ID {category_id}"
                 filter_desc.append(f"danh mục {category_name}")
             if color_id:
-                filter_desc.append(f"màu sắc ID {color_id}")
+                if color_name_resolved:
+                    filter_desc.append(f"màu sắc {color_name_resolved}")
+                else:
+                    filter_desc.append(f"màu sắc ID {color_id}")
             if movement_type_id:
                 movement_name = watches[0].get("movement_type_name", f"ID {movement_type_id}") if watches else f"ID {movement_type_id}"
                 filter_desc.append(f"loại máy {movement_name}")
+            if strap_material_id:
+                if material_name_resolved:
+                    filter_desc.append(f"dây {material_name_resolved}")
+                else:
+                    filter_desc.append(f"dây ID {strap_material_id}")
             if gender is not None:
                 gender_text = "nam" if gender == "0" else "nữ" if gender == "1" else f"{gender}"
                 filter_desc.append(f"giới tính {gender_text}")
