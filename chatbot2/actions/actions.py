@@ -676,8 +676,8 @@ class ActionSearchProducts(Action):
                 if not movement_type:
                     for it in movement_types_list:
                         n = (it.get("name") or "").lower()
-                        if ("quartz" in user_text and ("quartz" in n or "máy pin" in n)) or 
-                           ("automatic" in user_text and ("automatic" in n or "máy cơ" in n)):
+                        if (("quartz" in user_text and ("quartz" in n or "máy pin" in n)) or
+                            ("automatic" in user_text and ("automatic" in n or "máy cơ" in n))):
                             movement_type = it
                             break
             except Exception:
@@ -685,13 +685,23 @@ class ActionSearchProducts(Action):
 
             try:
                 strap_materials_list = fetch_items("http://localhost:8080/v1/strap-materials", ["strapMaterials", "rows"])
-                strap_material = find_first_match(strap_materials_list)
-                if not strap_material and "kim loại" in user_text:
-                    for it in strap_materials_list:
-                        n = (it.get("name") or "").lower()
-                        if "kim" in n or "thép" in n:
-                            strap_material = it
-                            break
+                # Avoid matching generic word "đồng" from "đồng hồ"; require explicit strap context
+                for it in strap_materials_list:
+                    n = (it.get("name") or "").lower()
+                    if not n:
+                        continue
+                    # require phrase patterns: "dây <name>" or "<name> dây"
+                    if f"dây {n}" in user_text or f"{n} dây" in user_text:
+                        strap_material = it
+                        break
+                    # handle synonyms for metal
+                    if n in ("kim loại", "thép") and "kim loại" in user_text:
+                        strap_material = it
+                        break
+                    # special case for copper ("đồng"): only match when "dây đồng" explicitly mentioned
+                    if n == "đồng" and "dây đồng" in user_text:
+                        strap_material = it
+                        break
             except Exception:
                 pass
 
@@ -701,45 +711,86 @@ class ActionSearchProducts(Action):
             ])
 
             if any_filter:
-                params = ["page=1", "limit=12"]
+                query_params: Dict[str, Any] = {"page": 1, "limit": 12}
                 if brand.get("id"):
-                    params.append(f"brand_id__in={brand.get('id')}")
+                    query_params["brand_id__in"] = brand.get("id")
                 if category.get("id"):
-                    params.append(f"category_id__in={category.get('id')}")
+                    query_params["category_id__in"] = category.get("id")
                 if color.get("id"):
-                    params.append(f"color_id__in={color.get('id')}")
+                    query_params["color_id__in"] = color.get("id")
                 if movement_type.get("id"):
-                    params.append(f"movement_type_id__in={movement_type.get('id')}")
+                    query_params["movement_type_id__in"] = movement_type.get("id")
                 if strap_material.get("id"):
-                    params.append(f"strap_material_id__in={strap_material.get('id')}")
+                    query_params["strap_material_id__in"] = strap_material.get("id")
                 if gender_code is not None:
-                    params.append(f"gender__in={gender_code}")
+                    query_params["gender__in"] = gender_code
 
-                q_fragments = style_tokens[:]
-                # also add extra tokens that are not IDs, e.g., "đồng hồ" if present to aid search
-                if "đồng hồ" in user_text:
-                    q_fragments.append("đồng hồ")
-                q_combined = " ".join(sorted(set(q_fragments)))
-                if q_combined:
-                    params.append(f"q={q_combined}")
+                # Do not send q when we already have structured filters
 
-                query_string = "&".join(params)
-                response = requests.get(f"http://localhost:8080/v1/search?{query_string}", headers=headers, timeout=10)
+                response = requests.get(
+                    "http://localhost:8080/v1/search",
+                    headers=headers,
+                    params=query_params,
+                    timeout=10,
+                )
                 response.raise_for_status()
                 data = response.json()
                 watches = data.get("watches", {}).get("items", [])
 
                 if not watches:
-                    human_desc = []
-                    if brand.get("name"): human_desc.append(f"thương hiệu {brand.get('name')}")
-                    if category.get("name"): human_desc.append(f"danh mục {category.get('name')}")
-                    if color.get("name"): human_desc.append(f"màu {color.get('name')}")
-                    if movement_type.get("name"): human_desc.append(f"loại máy {movement_type.get('name')}")
-                    if strap_material.get("name"): human_desc.append(f"dây {strap_material.get('name')}")
-                    if gender_code is not None: human_desc.append("giới tính nam" if gender_code == "0" else "giới tính nữ")
-                    if style_tokens: human_desc.append(", ".join(style_tokens))
-                    desc = ", ".join(human_desc) or "bộ lọc"
-                    dispatcher.utter_message(text=f"Không tìm thấy sản phẩm phù hợp với {desc}.")
+                    dispatcher.utter_message(text="Không tìm thấy sản phẩm theo yêu cầu của bạn. Thay vào đó hãy xem thử các sản phẩm bán chạy bên shop:")
+                    # Fallback to recommendations
+                    try:
+                        rec_headers = {"Content-Type": "application/json"}
+                        if token:
+                            rec_headers["Authorization"] = f"Bearer {token}"
+                            rec_resp = requests.get(
+                                "http://localhost:8080/v1/recommendations",
+                                headers=rec_headers,
+                                params={"limit": 5},
+                                timeout=10,
+                            )
+                        else:
+                            rec_resp = requests.get(
+                                "http://localhost:8080/v1/recommendations/public",
+                                headers=rec_headers,
+                                params={"limit": 5},
+                                timeout=10,
+                            )
+                        rec_resp.raise_for_status()
+                        rec_data = rec_resp.json()
+                        recs = rec_data.get("data", {}).get("recommendations", [])
+                        cards: List[Dict[str, Any]] = []
+                        for rec in recs:
+                            cards.append({
+                                "id": rec.get("watch_id"),
+                                "code": f"REC-{rec.get('watch_id')}",
+                                "name": rec.get("name"),
+                                "description": rec.get("description"),
+                                "model": rec.get("name"),
+                                "caseMaterial": ", ".join(rec.get("material_tags", [])),
+                                "gender": rec.get("gender_target"),
+                                "sold": rec.get("sold"),
+                                "basePrice": rec.get("base_price"),
+                                "rating": rec.get("rating"),
+                                "thumbnail": rec.get("images", [None])[0] if rec.get("images") else None,
+                                "slider": rec.get("images", []),
+                                "brandId": rec.get("brand", {}).get("id"),
+                                "brandName": rec.get("brand", {}).get("name"),
+                                "categoryId": rec.get("category", {}).get("id"),
+                                "categoryName": rec.get("category", {}).get("name"),
+                                "movementTypeName": ", ".join(rec.get("movement_type_tags", [])),
+                                "colorTags": rec.get("color_tags", []),
+                                "styleTags": rec.get("style_tags", []),
+                                "isAiRecommended": rec.get("is_ai_recommended"),
+                                "score": rec.get("score")
+                            })
+                        if cards:
+                            dispatcher.utter_message(
+                                custom={"type": "cards", "cards": cards}
+                            )
+                    except Exception:
+                        pass
                     return []
 
                 cards: List[Dict[str, Any]] = []
@@ -907,8 +958,6 @@ class ActionFilterProducts(Action):
             strap_material_id = metadata.get("strap_material_id") or metadata.get("material_id")
             gender = metadata.get("gender")
             rating_min = metadata.get("rating_min")
-            # Optional free-text query to combine with id filters
-            q_text = metadata.get("q")
             
             # Get token from metadata
             token = metadata.get("token")
@@ -917,38 +966,93 @@ class ActionFilterProducts(Action):
             if token:
                 headers["Authorization"] = f"Bearer {token}"
             
-            # Build query parameters
-            params = ["page=1", "limit=12"]
-            
+            # Build query parameters safely (requests will encode values)
+            query_params: Dict[str, Any] = {
+                "page": 1,
+                "limit": 12,
+            }
             if brand_id:
-                params.append(f"brand_id__in={brand_id}")
+                query_params["brand_id__in"] = brand_id
             if category_id:
-                params.append(f"category_id__in={category_id}")
+                query_params["category_id__in"] = category_id
             if color_id:
-                params.append(f"color_id__in={color_id}")
+                query_params["color_id__in"] = color_id
             if movement_type_id:
-                params.append(f"movement_type_id__in={movement_type_id}")
+                query_params["movement_type_id__in"] = movement_type_id
             if strap_material_id:
-                params.append(f"strap_material_id__in={strap_material_id}")
+                query_params["strap_material_id__in"] = strap_material_id
             if gender is not None:
-                params.append(f"gender__in={gender}")
+                query_params["gender__in"] = gender
             if rating_min is not None:
-                params.append(f"rating__gte={rating_min}")
-            if q_text:
-                params.append(f"q={q_text}")
-            
-            query_string = "&".join(params)
-            
+                query_params["rating__gte"] = rating_min
+            # Note: do not include free-text q when using ID filters to avoid narrowing incorrectly
+
             # Call search API with filter parameters
-            response = requests.get(f"http://localhost:8080/v1/search?{query_string}", 
-                                 headers=headers, timeout=10)
+            response = requests.get(
+                "http://localhost:8080/v1/search",
+                headers=headers,
+                params=query_params,
+                timeout=10,
+            )
             response.raise_for_status()
             
             data = response.json()
             watches = data.get("watches", {}).get("items", [])
             
             if not watches:
-                dispatcher.utter_message(text="Không tìm thấy sản phẩm nào với bộ lọc này.")
+                dispatcher.utter_message(text="Không tìm thấy sản phẩm theo yêu cầu của bạn. Thay vào đó hãy xem thử các sản phẩm bán chạy bên shop:")
+                # Fallback to recommendations
+                try:
+                    rec_headers = {"Content-Type": "application/json"}
+                    if token:
+                        rec_headers["Authorization"] = f"Bearer {token}"
+                        rec_resp = requests.get(
+                            "http://localhost:8080/v1/recommendations",
+                            headers=rec_headers,
+                            params={"limit": 5},
+                            timeout=10,
+                        )
+                    else:
+                        rec_resp = requests.get(
+                            "http://localhost:8080/v1/recommendations/public",
+                            headers=rec_headers,
+                            params={"limit": 5},
+                            timeout=10,
+                        )
+                    rec_resp.raise_for_status()
+                    rec_data = rec_resp.json()
+                    recs = rec_data.get("data", {}).get("recommendations", [])
+                    cards: List[Dict[str, Any]] = []
+                    for rec in recs:
+                        cards.append({
+                            "id": rec.get("watch_id"),
+                            "code": f"REC-{rec.get('watch_id')}",
+                            "name": rec.get("name"),
+                            "description": rec.get("description"),
+                            "model": rec.get("name"),
+                            "caseMaterial": ", ".join(rec.get("material_tags", [])),
+                            "gender": rec.get("gender_target"),
+                            "sold": rec.get("sold"),
+                            "basePrice": rec.get("base_price"),
+                            "rating": rec.get("rating"),
+                            "thumbnail": rec.get("images", [None])[0] if rec.get("images") else None,
+                            "slider": rec.get("images", []),
+                            "brandId": rec.get("brand", {}).get("id"),
+                            "brandName": rec.get("brand", {}).get("name"),
+                            "categoryId": rec.get("category", {}).get("id"),
+                            "categoryName": rec.get("category", {}).get("name"),
+                            "movementTypeName": ", ".join(rec.get("movement_type_tags", [])),
+                            "colorTags": rec.get("color_tags", []),
+                            "styleTags": rec.get("style_tags", []),
+                            "isAiRecommended": rec.get("is_ai_recommended"),
+                            "score": rec.get("score")
+                        })
+                    if cards:
+                        dispatcher.utter_message(
+                            custom={"type": "cards", "cards": cards}
+                        )
+                except Exception:
+                    pass
                 return []
 
             # Build cards payload for FE
