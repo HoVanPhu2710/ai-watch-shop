@@ -83,6 +83,9 @@ models/
 models/**
 data/
 data/**
+# Allow Rasa training YAMLs under chatbot2/data
+!chatbot2/data/
+!chatbot2/data/*.yml
 checkpoints/
 artifacts/
 outputs/
@@ -141,6 +144,8 @@ chatbot2/data/test_nlu.yml
 # Sensitive Rasa files (usually filled locally)
 chatbot2/credentials.yml
 chatbot2/endpoints.yml
+!chatbot2/credentials.yml
+!chatbot2/endpoints.yml
 
 # ===== Project-specific notes =====
 # If you need to keep some data/models, replace folder ignores with more specific paths.
