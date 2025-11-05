@@ -471,6 +471,94 @@ class ActionShowMovementTypes(Action):
         return []
 
 
+class ActionShowPrice(Action):
+    """Action to show price range buttons"""
+
+    def name(self) -> Text:
+        return "action_show_price"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        # Create buttons for price ranges
+        buttons = [
+            {
+                "title": "Dưới 1 triệu",
+                "payload": "tôi muốn mua đồng hồ giá dưới 1 triệu"
+            },
+            {
+                "title": "1-3 triệu",
+                "payload": "tôi muốn mua đồng hồ giá từ 1 triệu đến 3 triệu"
+            },
+            {
+                "title": "3-7 triệu",
+                "payload": "tôi muốn mua đồng hồ giá từ 3 triệu đến 7 triệu"
+            },
+            {
+                "title": "7-15 triệu",
+                "payload": "tôi muốn mua đồng hồ giá từ 7 triệu đến 15 triệu"
+            },
+            {
+                "title": "Trên 15 triệu",
+                "payload": "tôi muốn mua đồng hồ giá trên 15 triệu"
+            }
+        ]
+        
+        dispatcher.utter_message(
+            text="Chọn khoảng giá bạn muốn xem:",
+            buttons=buttons
+        )
+        
+        return []
+
+
+class ActionShowProductReviews(Action):
+    """Action to show rating filter buttons"""
+
+    def name(self) -> Text:
+        return "action_show_product_reviews"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        # Create buttons for rating filters
+        buttons = [
+            {
+                "title": "Chưa đánh giá",
+                "payload": "tôi muốn mua đồng hồ từ 0 sao trở lên"
+            },
+            {
+                "title": "Trên 1 sao",
+                "payload": "tôi muốn mua đồng hồ từ 1 sao trở lên"
+            },
+            {
+                "title": "Trên 2 sao",
+                "payload": "tôi muốn mua đồng hồ từ 2 sao trở lên"
+            },
+            {
+                "title": "Trên 3 sao",
+                "payload": "tôi muốn mua đồng hồ từ 3 sao trở lên"
+            },
+            {
+                "title": "Trên 4 sao",
+                "payload": "tôi muốn mua đồng hồ từ 4 sao trở lên"
+            },
+            {
+                "title": "Trên 5 sao",
+                "payload": "tôi muốn mua đồng hồ từ 5 sao trở lên"
+            }
+        ]
+        
+        dispatcher.utter_message(
+            text="Chọn mức đánh giá bạn muốn xem:",
+            buttons=buttons
+        )
+        
+        return []
+
+
 class ActionShowStrapMaterials(Action):
     """Action to fetch and display strap materials from API with JWT token"""
 
@@ -623,20 +711,179 @@ class ActionSearchProducts(Action):
                 "mạ vàng": "vàng",
             }
 
+            # Helper function to parse price from text
+            def parse_price(text: str) -> tuple:
+                """
+                Parse price from Vietnamese text.
+                Returns tuple (min_price, max_price) in VND, or None if no price found.
+                Examples:
+                - "250k" -> (0, 250000)
+                - "1 triệu" -> (0, 1000000)
+                - "từ 100k đến 500k" -> (100000, 500000)
+                - "dưới 1 triệu" -> (0, 1000000)
+                - "trên 5 triệu" -> (5000000, None)
+                """
+                import re
+                
+                # Skip price parsing if text contains rating-related keywords to avoid conflict
+                text_lower = text.lower()
+                if "sao" in text_lower or "rating" in text_lower or "đánh giá" in text_lower:
+                    return None
+                
+                # Remove common words and normalize
+                text = text_lower.replace(".", "").replace(",", "")
+                
+                # Helper to convert text to number
+                def text_to_number(s):
+                    s = s.strip().lower()
+                    # Handle "k" suffix (thousand)
+                    if s.endswith("k"):
+                        return int(float(s[:-1]) * 1000)
+                    # Handle "tr" or "triệu" (million)
+                    if s.endswith("tr") or s.endswith("triệu"):
+                        num_part = s.replace("tr", "").replace("triệu", "").strip()
+                        if num_part:
+                            return int(float(num_part) * 1000000)
+                    # Handle "nghìn" (thousand)
+                    if "nghìn" in s:
+                        num_part = s.replace("nghìn", "").strip()
+                        if num_part:
+                            return int(float(num_part) * 1000)
+                    # Try to parse as number
+                    try:
+                        return int(float(s))
+                    except:
+                        return None
+                
+                # Pattern 1: "từ X đến Y" or "khoảng từ X đến Y" or "trong khoảng từ X đến Y"
+                range_pattern = r"(?:từ|khoảng từ|trong khoảng từ)\s+([\d\.\,\s]+(?:k|tr|triệu|nghìn)?)\s+đến\s+([\d\.\,\s]+(?:k|tr|triệu|nghìn)?)"
+                match = re.search(range_pattern, text)
+                if match:
+                    min_val = text_to_number(match.group(1))
+                    max_val = text_to_number(match.group(2))
+                    if min_val is not None and max_val is not None:
+                        return (min_val, max_val)
+                
+                # Pattern 2: "dưới X" or "dưới X triệu" or "dưới Xk"
+                below_pattern = r"dưới\s+([\d\.\,\s]+(?:k|tr|triệu|nghìn)?)"
+                match = re.search(below_pattern, text)
+                if match:
+                    max_val = text_to_number(match.group(1))
+                    if max_val is not None:
+                        return (0, max_val)
+                
+                # Pattern 3: "trên X" or "từ X trở lên"
+                above_pattern = r"(?:trên|từ)\s+([\d\.\,\s]+(?:k|tr|triệu|nghìn)?)(?:\s+trở lên)?"
+                match = re.search(above_pattern, text)
+                if match:
+                    min_val = text_to_number(match.group(1))
+                    if min_val is not None:
+                        return (min_val, None)  # No upper limit
+                
+                # Pattern 4: "tầm X" or "khoảng X" or "cỡ X" or "còn có X"
+                exact_pattern = r"(?:tầm|khoảng|cỡ|còn có)\s+([\d\.\,\s]+(?:k|tr|triệu|nghìn)?)"
+                match = re.search(exact_pattern, text)
+                if match:
+                    val = text_to_number(match.group(1))
+                    if val is not None:
+                        # For exact price, use small range (e.g., ±10%)
+                        return (int(val * 0.9), int(val * 1.1))
+                
+                # Pattern 5: Just a number with k/tr/triệu/nghìn (e.g., "250k", "1 triệu")
+                simple_pattern = r"([\d\.\,\s]+(?:k|tr|triệu|nghìn))"
+                matches = re.findall(simple_pattern, text)
+                if matches:
+                    # Try to find price context
+                    if "giá" in text or "còn có" in text or "có" in text[:50] or "mua" in text:
+                        val = text_to_number(matches[0])
+                        if val is not None:
+                            return (0, val)
+                
+                # Pattern 6: Just a number without unit (e.g., "250 mua", "500 mua được")
+                # Assume it's in thousands if number is reasonable (100-9999)
+                number_pattern = r"^(\d{2,4})\s+(?:mua|đồng|k|triệu|nghìn)"
+                match = re.search(number_pattern, text)
+                if match:
+                    num = int(match.group(1))
+                    if 100 <= num <= 9999:
+                        # Assume it's thousands (250 → 250k)
+                        return (0, num * 1000)
+                
+                # Pattern 7: Number at start/end with "mua" context
+                number_with_context = r"(\d{2,4})\s+(?:mua|đồng|k|triệu|nghìn|được)"
+                match = re.search(number_with_context, text)
+                if match:
+                    num = int(match.group(1))
+                    if 100 <= num <= 9999:
+                        # Assume it's thousands (250 → 250k)
+                        return (0, num * 1000)
+                
+                return None
+            
+            # Helper function to parse rating from text
+            def parse_rating(text: str) -> int:
+                """
+                Parse rating from Vietnamese text.
+                Returns rating value (0-5) or None if no rating found.
+                Examples:
+                - "đồng hồ 4 sao" -> 4
+                - "rating từ 4" -> 4
+                - "đánh giá từ 4 sao trở lên" -> 4
+                - "4 sao trở lên" -> 4
+                - "từ 4 sao" -> 4
+                - "từ 0 sao trở lên" -> 0 (chưa đánh giá)
+                """
+                import re
+                
+                text = text.lower()
+                
+                # Pattern 1: "X sao" or "X sao trở lên" or "từ X sao"
+                rating_pattern = r"(?:từ\s+)?(\d)\s*sao(?:\s+trở\s+lên)?"
+                match = re.search(rating_pattern, text)
+                if match:
+                    rating = int(match.group(1))
+                    if 0 <= rating <= 5:  # Allow 0 for "chưa đánh giá"
+                        return rating
+                
+                # Pattern 2: "rating X" or "đánh giá X" or "rating từ X"
+                rating_pattern2 = r"(?:rating|đánh giá)(?:\s+từ)?\s+(\d)"
+                match = re.search(rating_pattern2, text)
+                if match:
+                    rating = int(match.group(1))
+                    if 0 <= rating <= 5:  # Allow 0 for "chưa đánh giá"
+                        return rating
+                
+                # Pattern 3: "X sao" standalone (if rating-related keywords present)
+                if "sao" in text or "rating" in text or "đánh giá" in text:
+                    rating_pattern3 = r"\b(\d)\s*sao"
+                    match = re.search(rating_pattern3, text)
+                    if match:
+                        rating = int(match.group(1))
+                        if 0 <= rating <= 5:  # Allow 0 for "chưa đánh giá"
+                            return rating
+                
+                return None
+            
+            # Parse price from user text
+            price_range = parse_price(user_text)
+            
+            # Parse rating from user text
+            rating_min = parse_rating(user_text)
+            
             # Gender parse
             gender_code = None
             if " nam" in f" {user_text}" or user_text.startswith("nam"):
                 gender_code = "0"
             if " nữ" in f" {user_text}" or user_text.startswith("nữ"):
                 gender_code = "1"
-
-            # Style tokens (sent to q if present)
-            style_tokens = []
-            for st in ["cổ điển", "classic", "vintage", "retro", "thể thao", "hiện đại"]:
-                if st in user_text:
-                    style_tokens.append(st)
-
-            # Try dynamic resolutions
+            
+            # Check for vague price-related queries (should use recommend API)
+            vague_price_keywords = ["giá rẻ", "rẻ", "rẻ nhất", "giá tốt", "giá tốt nhất", "hợp lý", "hợp lý nhất", 
+                                     "giá bình dân", "giá phải chăng", "vừa túi tiền", "đáng mua", "nên mua", 
+                                     "tốt nhất", "hot nhất", "bán chạy nhất", "được yêu thích nhất"]
+            is_vague_query = any(keyword in user_text for keyword in vague_price_keywords)
+            
+            # Try dynamic resolutions first (for filters)
             brand = {}
             category = {}
             color = {}
@@ -705,9 +952,83 @@ class ActionSearchProducts(Action):
             except Exception:
                 pass
 
+            # Style tokens (sent to q if present)
+            style_tokens = []
+            for st in ["cổ điển", "classic", "vintage", "retro", "thể thao", "hiện đại"]:
+                if st in user_text:
+                    style_tokens.append(st)
+
+            # Check for vague price-related queries (should use recommend API)
+            # Only check if no specific filters are found
+            vague_price_keywords = ["giá rẻ", "rẻ", "rẻ nhất", "giá tốt", "giá tốt nhất", "hợp lý", "hợp lý nhất", 
+                                     "giá bình dân", "giá phải chăng", "vừa túi tiền", "đáng mua", "nên mua", 
+                                     "tốt nhất", "hot nhất", "bán chạy nhất", "được yêu thích nhất"]
+            is_vague_query = any(keyword in user_text for keyword in vague_price_keywords)
+            
+            # If vague query without specific price, rating or filters, use recommend API
+            if is_vague_query and price_range is None and rating_min is None and not any([
+                brand.get("id"), category.get("id"), color.get("id"), movement_type.get("id"), 
+                strap_material.get("id"), gender_code is not None
+            ]):
+                # Use recommend API for vague queries
+                try:
+                    if token:
+                        rec_headers = {"Content-Type": "application/json"}
+                        rec_headers["Authorization"] = f"Bearer {token}"
+                        rec_resp = requests.get(
+                            "http://localhost:8080/v1/recommendations",
+                            headers=rec_headers,
+                            params={"limit": 12},
+                            timeout=10,
+                        )
+                    else:
+                        rec_headers = {"Content-Type": "application/json"}
+                        rec_resp = requests.get(
+                            "http://localhost:8080/v1/recommendations/public",
+                            headers=rec_headers,
+                            params={"limit": 12},
+                            timeout=10,
+                        )
+                    rec_resp.raise_for_status()
+                    rec_data = rec_resp.json()
+                    recs = rec_data.get("data", {}).get("recommendations", [])
+                    cards: List[Dict[str, Any]] = []
+                    for rec in recs:
+                        cards.append({
+                            "id": rec.get("watch_id"),
+                            "code": f"REC-{rec.get('watch_id')}",
+                            "name": rec.get("name"),
+                            "description": rec.get("description"),
+                            "model": rec.get("name"),
+                            "caseMaterial": ", ".join(rec.get("material_tags", [])),
+                            "gender": rec.get("gender_target"),
+                            "sold": rec.get("sold"),
+                            "basePrice": rec.get("base_price"),
+                            "rating": rec.get("rating"),
+                            "thumbnail": rec.get("images", [None])[0] if rec.get("images") else None,
+                            "slider": rec.get("images", []),
+                            "brandId": rec.get("brand", {}).get("id"),
+                            "brandName": rec.get("brand", {}).get("name"),
+                            "categoryId": rec.get("category", {}).get("id"),
+                            "categoryName": rec.get("category", {}).get("name"),
+                            "movementTypeName": ", ".join(rec.get("movement_type_tags", [])),
+                            "colorTags": rec.get("color_tags", []),
+                            "styleTags": rec.get("style_tags", []),
+                            "isAiRecommended": rec.get("is_ai_recommended"),
+                            "score": rec.get("score")
+                        })
+                    if cards:
+                        dispatcher.utter_message(
+                            text="Đây là những đồng hồ được gợi ý dành cho bạn:",
+                            custom={"type": "cards", "cards": cards}
+                        )
+                        return []
+                except Exception:
+                    pass  # Fall through to normal search if recommend fails
+
             # If we recognized any structured filters, build filter params; else fallback to q-only
             any_filter = any([
-                brand.get("id"), category.get("id"), color.get("id"), movement_type.get("id"), strap_material.get("id"), gender_code is not None, style_tokens
+                brand.get("id"), category.get("id"), color.get("id"), movement_type.get("id"), strap_material.get("id"), gender_code is not None, style_tokens, price_range is not None, rating_min is not None
             ])
 
             if any_filter:
@@ -724,6 +1045,16 @@ class ActionSearchProducts(Action):
                     query_params["strap_material_id__in"] = strap_material.get("id")
                 if gender_code is not None:
                     query_params["gender__in"] = gender_code
+                if rating_min is not None and rating_min > 0:
+                    # Only add rating filter if rating > 0 (0 means "all", no filter)
+                    query_params["rating__gte"] = rating_min
+                if price_range:
+                    min_price, max_price = price_range
+                    if max_price is not None:
+                        query_params["base_price__range"] = f"{min_price}:{max_price}"
+                    else:
+                        # For "trên X", set a high upper limit (e.g., 100 million)
+                        query_params["base_price__range"] = f"{min_price}:100000000"
 
                 # Do not send q when we already have structured filters
 
@@ -831,6 +1162,20 @@ class ActionSearchProducts(Action):
                 if strap_material.get("name"): desc_parts.append(f"dây {strap_material.get('name')}")
                 if gender_code is not None: desc_parts.append("nam" if gender_code == "0" else "nữ")
                 if style_tokens: desc_parts.append(", ".join(style_tokens))
+                if rating_min is not None:
+                    if rating_min == 0:
+                        desc_parts.append("chưa đánh giá")
+                    else:
+                        desc_parts.append(f"đánh giá từ {rating_min} sao")
+                if price_range:
+                    min_price, max_price = price_range
+                    if max_price is not None:
+                        if min_price == 0:
+                            desc_parts.append(f"dưới {max_price//1000}k" if max_price < 1000000 else f"dưới {max_price//1000000} triệu")
+                        else:
+                            desc_parts.append(f"giá từ {min_price//1000}k đến {max_price//1000}k" if max_price < 1000000 else f"giá từ {min_price//1000000} triệu đến {max_price//1000000} triệu")
+                    else:
+                        desc_parts.append(f"trên {min_price//1000000} triệu")
                 filter_text = ", ".join([p for p in desc_parts if p]) or "bộ lọc"
 
                 dispatcher.utter_message(
@@ -958,6 +1303,7 @@ class ActionFilterProducts(Action):
             strap_material_id = metadata.get("strap_material_id") or metadata.get("material_id")
             gender = metadata.get("gender")
             rating_min = metadata.get("rating_min")
+            base_price_range = metadata.get("base_price__range") or metadata.get("base_price_range")
             
             # Get token from metadata
             token = metadata.get("token")
@@ -985,6 +1331,8 @@ class ActionFilterProducts(Action):
                 query_params["gender__in"] = gender
             if rating_min is not None:
                 query_params["rating__gte"] = rating_min
+            if base_price_range:
+                query_params["base_price__range"] = base_price_range
             # Note: do not include free-text q when using ID filters to avoid narrowing incorrectly
 
             # Call search API with filter parameters
@@ -1157,8 +1505,24 @@ class ActionFilterProducts(Action):
             if gender is not None:
                 gender_text = "nam" if gender == "0" else "nữ" if gender == "1" else f"{gender}"
                 filter_desc.append(f"giới tính {gender_text}")
-            if rating_min is not None:
+            if rating_min is not None and rating_min > 0:
                 filter_desc.append(f"đánh giá từ {rating_min} sao")
+            if base_price_range:
+                # Parse price range string (format: "min:max")
+                try:
+                    if ":" in base_price_range:
+                        min_price_str, max_price_str = base_price_range.split(":", 1)
+                        min_price = int(min_price_str)
+                        max_price = int(max_price_str) if max_price_str else None
+                        if max_price is not None:
+                            if min_price == 0:
+                                filter_desc.append(f"dưới {max_price//1000}k" if max_price < 1000000 else f"dưới {max_price//1000000} triệu")
+                            else:
+                                filter_desc.append(f"giá từ {min_price//1000}k đến {max_price//1000}k" if max_price < 1000000 else f"giá từ {min_price//1000000} triệu đến {max_price//1000000} triệu")
+                        else:
+                            filter_desc.append(f"trên {min_price//1000000} triệu")
+                except:
+                    filter_desc.append(f"giá {base_price_range}")
 
             filter_text = ", ".join(filter_desc) if filter_desc else "bộ lọc"
 

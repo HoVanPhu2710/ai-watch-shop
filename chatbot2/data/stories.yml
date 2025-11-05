@@ -16,7 +16,7 @@ stories:
       - intent: ask_brand
       - action: action_show_brands
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
 
   - story: customer asks about specific product
     steps:
@@ -25,7 +25,7 @@ stories:
       - intent: ask_product_info
       - action: utter_show_product_info
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: buy_product
       - action: utter_buy_options
 
@@ -44,7 +44,7 @@ stories:
       - intent: ask_brand
       - action: action_show_brands
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: ask_promotion
       - action: action_show_promotions
 
@@ -63,7 +63,7 @@ stories:
   - story: ask about price and promotions
     steps:
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: ask_promotion
       - action: action_show_promotions
       - intent: ask_inventory
@@ -145,7 +145,7 @@ stories:
       - intent: ask_product_info
       - action: utter_show_product_info
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: ask_promotion
       - action: action_show_promotions
       - intent: buy_product
@@ -164,7 +164,7 @@ stories:
       - intent: ask_material
       - action: action_show_strap_materials
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: buy_product
       - action: utter_buy_options
       - intent: ask_popular_watches
@@ -182,7 +182,7 @@ stories:
       - intent: ask_color
       - action: action_show_colors
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: goodbye
       - action: utter_goodbye
 
@@ -193,7 +193,7 @@ stories:
       - intent: ask_product_info
       - action: utter_show_product_info
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: deny
       - action: utter_ask_other_products
       - intent: search_products
@@ -319,7 +319,7 @@ stories:
   - story: ask about product reviews
     steps:
       - intent: ask_product_review
-      - action: utter_show_product_reviews
+      - action: action_show_product_reviews
       - intent: ask_product_info
       - action: utter_show_product_info
 
@@ -328,7 +328,7 @@ stories:
       - intent: search_products
       - action: utter_show_products
       - intent: ask_product_review
-      - action: utter_show_product_reviews
+      - action: action_show_product_reviews
       - intent: ask_product_info
       - action: utter_show_product_info
       - intent: buy_product
@@ -348,9 +348,9 @@ stories:
       - intent: ask_product_info
       - action: utter_show_product_info
       - intent: ask_product_review
-      - action: utter_show_product_reviews
+      - action: action_show_product_reviews
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
       - intent: ask_payment_method
       - action: utter_show_payment_methods
       - intent: ask_delivery_time
@@ -428,7 +428,7 @@ stories:
       - intent: buy_product
       - action: utter_buy_options
       - intent: ask_price
-      - action: utter_show_price
+      - action: action_show_price
 
   - story: customer wants to buy - material consultation
     steps:

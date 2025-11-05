@@ -772,6 +772,130 @@ nlu:
       - tôi muốn xem đồng hồ loại máy máy cơ
       - tôi muốn xem đồng hồ dây da
       - tôi muốn xem đồng hồ dây kim loại
+      - tôi còn có 250k bên bạn có đồng hồ nào giá đó không
+      - tôi còn có 250 nghìn bên bạn có đồng hồ nào giá đó không
+      - tôi còn có 250000 bên bạn có đồng hồ nào giá đó không
+      - tôi còn có 250 nghìn đồng bên bạn có đồng hồ nào giá đó không
+      - tôi còn có 250k tư vấn cho tôi đồng hồ đi tiệc
+      - tôi còn có 1 triệu tư vấn cho tôi đồng hồ đi tiệc
+      - tôi còn có 1 triệu đồng tư vấn cho tôi đồng hồ đi tiệc
+      - tôi còn có 1tr tư vấn cho tôi đồng hồ đi tiệc
+      - tôi muốn mua sản phẩm trong khoảng từ 100 đến 500
+      - tôi muốn mua sản phẩm trong khoảng từ 100 đến 500 nghìn
+      - tôi muốn mua sản phẩm trong khoảng từ 100 đến 500 nghìn đồng
+      - tôi muốn mua sản phẩm trong khoảng từ 100k đến 500k
+      - tôi muốn mua sản phẩm trong khoảng từ 100.000 đến 500.000
+      - tôi muốn mua sản phẩm trong khoảng từ 1 triệu đến 3 triệu
+      - tôi muốn mua sản phẩm trong khoảng từ 1tr đến 3tr
+      - tôi muốn mua sản phẩm trong khoảng từ 1 triệu đồng đến 3 triệu đồng
+      - tôi muốn mua đồng hồ giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ giá từ 500 nghìn đến 1 triệu
+      - tôi muốn mua đồng hồ giá từ 500.000 đến 1.000.000
+      - tôi muốn mua đồng hồ giá dưới 1 triệu
+      - tôi muốn mua đồng hồ giá dưới 1 triệu đồng
+      - tôi muốn mua đồng hồ giá dưới 1tr
+      - tôi muốn mua đồng hồ giá dưới 500k
+      - tôi muốn mua đồng hồ giá dưới 500 nghìn
+      - tôi muốn mua đồng hồ giá dưới 500.000
+      - tôi muốn mua đồng hồ giá trên 5 triệu
+      - tôi muốn mua đồng hồ giá trên 5 triệu đồng
+      - tôi muốn mua đồng hồ giá trên 5tr
+      - tôi muốn mua đồng hồ giá từ 2 triệu trở lên
+      - tôi muốn mua đồng hồ giá từ 2tr trở lên
+      - tôi muốn mua đồng hồ giá tầm 1 triệu
+      - tôi muốn mua đồng hồ giá tầm 1tr
+      - tôi muốn mua đồng hồ giá khoảng 2 triệu
+      - tôi muốn mua đồng hồ giá khoảng 2tr
+      - tôi muốn mua đồng hồ giá cỡ 500k
+      - tôi muốn mua đồng hồ giá cỡ 500 nghìn
+      - tôi muốn mua đồng hồ giá từ 300k đến 800k
+      - tôi muốn mua đồng hồ giá từ 300 nghìn đến 800 nghìn
+      - tôi muốn mua đồng hồ giá từ 300.000 đến 800.000
+      - tôi muốn mua đồng hồ giá từ 2 triệu đến 5 triệu
+      - tôi muốn mua đồng hồ giá từ 2tr đến 5tr
+      - tôi muốn mua đồng hồ giá từ 2 triệu đồng đến 5 triệu đồng
+      - tôi muốn mua đồng hồ giá từ 1.5 triệu đến 3.5 triệu
+      - tôi muốn mua đồng hồ giá từ 1.5tr đến 3.5tr
+      - tôi muốn mua đồng hồ giá từ 1 triệu 500 đến 3 triệu 500
+      - tôi muốn mua đồng hồ giá từ 1tr500 đến 3tr500
+      - tôi muốn mua đồng hồ giá từ 100k đến 200k
+      - tôi muốn mua đồng hồ giá từ 100 nghìn đến 200 nghìn
+      - tôi muốn mua đồng hồ giá từ 100.000 đến 200.000
+      - 250 mua đồng hồ nào
+      - 250 mua được đồng hồ nào
+      - 250k mua được mẫu nào
+      - 500k mua được mẫu nào
+      - 500 mua được đồng hồ nào
+      - 1 triệu mua được đồng hồ nào
+      - 1tr mua được đồng hồ nào
+      - 300k mua được gì
+      - 400k mua được gì
+      - 600k mua được gì
+      - 800k mua được gì
+      - 1.5 triệu mua được gì
+      - 2 triệu mua được gì
+      - có đồng hồ nào giá rẻ không
+      - có đồng hồ nào rẻ không
+      - có đồng hồ nào giá tốt không
+      - có đồng hồ nào hợp lý không
+      - có đồng hồ nào giá bình dân không
+      - có đồng hồ nào giá phải chăng không
+      - có đồng hồ nào giá vừa túi tiền không
+      - đồng hồ nào giá rẻ
+      - đồng hồ nào rẻ nhất
+      - đồng hồ nào giá tốt nhất
+      - đồng hồ nào giá hợp lý nhất
+      - tư vấn đồng hồ giá rẻ
+      - gợi ý đồng hồ giá rẻ
+      - tư vấn đồng hồ giá tốt
+      - gợi ý đồng hồ giá tốt
+      - tư vấn đồng hồ hợp lý
+      - gợi ý đồng hồ hợp lý
+      - đồng hồ giá tốt
+      - đồng hồ giá rẻ
+      - đồng hồ hợp lý
+      - đồng hồ giá phải chăng
+      - đồng hồ giá bình dân
+      - đồng hồ nào đáng mua nhất
+      - đồng hồ nào nên mua
+      - đồng hồ nào tốt nhất
+      - đồng hồ nào hot nhất
+      - đồng hồ nào bán chạy nhất
+      - đồng hồ nào được yêu thích nhất
+      - tôi muốn mua đồng hồ 4 sao
+      - tôi muốn mua đồng hồ từ 4 sao trở lên
+      - tôi muốn mua đồng hồ đánh giá từ 4 sao
+      - tôi muốn mua đồng hồ rating từ 4
+      - tôi muốn mua đồng hồ 5 sao
+      - tôi muốn mua đồng hồ từ 5 sao trở lên
+      - tôi muốn mua đồng hồ đánh giá từ 5 sao
+      - tôi muốn mua đồng hồ rating từ 5
+      - tôi muốn mua đồng hồ 3 sao trở lên
+      - tôi muốn mua đồng hồ từ 3 sao trở lên
+      - tôi muốn mua đồng hồ đánh giá từ 3 sao trở lên
+      - tôi muốn mua đồng hồ rating từ 3 trở lên
+      - tôi muốn mua đồng hồ 4 sao trở lên
+      - tôi muốn mua đồng hồ từ 4 sao
+      - tôi muốn mua đồng hồ đánh giá 4 sao
+      - tôi muốn mua đồng hồ rating 4
+      - đồng hồ 4 sao
+      - đồng hồ từ 4 sao trở lên
+      - đồng hồ đánh giá từ 4 sao
+      - đồng hồ rating từ 4
+      - đồng hồ 5 sao
+      - đồng hồ từ 5 sao trở lên
+      - đồng hồ đánh giá từ 5 sao
+      - đồng hồ rating từ 5
+      - đồng hồ 3 sao trở lên
+      - đồng hồ từ 3 sao trở lên
+      - đồng hồ đánh giá từ 3 sao trở lên
+      - đồng hồ rating từ 3 trở lên
+      - tôi muốn mua đồng hồ nam 4 sao
+      - tôi muốn mua đồng hồ nữ từ 4 sao trở lên
+      - tôi muốn mua đồng hồ giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ casio từ 4 sao trở lên
+      - tôi muốn mua đồng hồ màu đen 5 sao
+      - tôi muốn mua đồng hồ máy pin từ 4 sao trở lên
 
   - intent: search_watches
     examples: |

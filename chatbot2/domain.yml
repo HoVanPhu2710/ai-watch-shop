@@ -342,6 +342,8 @@ actions:
   - action_show_popular_watches
   - action_show_movement_types
   - action_show_strap_materials
+  - action_show_price
+  - action_show_product_reviews
   - action_search_products
   - action_filter_products
   - action_show_order_status
