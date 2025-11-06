@@ -896,6 +896,70 @@ nlu:
       - tôi muốn mua đồng hồ casio từ 4 sao trở lên
       - tôi muốn mua đồng hồ màu đen 5 sao
       - tôi muốn mua đồng hồ máy pin từ 4 sao trở lên
+      - tôi muốn mua đồng hồ casio nam giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ rolex từ 5 triệu đến 15 triệu
+      - tôi muốn mua đồng hồ nữ màu vàng giá dưới 2 triệu
+      - tôi muốn mua đồng hồ nam màu đen từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ casio nam màu đen giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ rolex nam từ 10 triệu trở lên
+      - tôi muốn mua đồng hồ nữ màu bạc giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ nam máy pin giá dưới 1 triệu
+      - tôi muốn mua đồng hồ nữ máy cơ giá từ 2 triệu đến 5 triệu
+      - tôi muốn mua đồng hồ dây da nam giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ dây kim loại nữ giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ casio nam màu đen máy pin giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ rolex nam màu vàng máy cơ từ 10 triệu trở lên
+      - tôi muốn mua đồng hồ nữ màu bạc dây da giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ nam máy pin dây kim loại giá dưới 1 triệu
+      - tôi muốn mua đồng hồ casio nam giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ nữ giá từ 1 triệu đến 3 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ nam màu đen giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ casio nam màu đen giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex nam từ 10 triệu trở lên rating từ 5 sao
+      - tôi muốn mua đồng hồ nữ màu bạc giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ nam máy pin giá dưới 1 triệu rating từ 3 sao trở lên
+      - tôi muốn mua đồng hồ nữ máy cơ giá từ 2 triệu đến 5 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ dây da nam giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ dây kim loại nữ giá từ 500k đến 1 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ casio nam màu đen máy pin giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex nam màu vàng máy cơ từ 10 triệu trở lên rating từ 5 sao
+      - tôi muốn mua đồng hồ nữ màu bạc dây da giá từ 1 triệu đến 3 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ nam máy pin dây kim loại giá dưới 1 triệu rating từ 3 sao trở lên
+      - tôi muốn mua đồng hồ casio nam màu đen máy pin giá từ 500k đến 1 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ thể thao nam màu đen giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ phú nam màu vàng giá từ 2 triệu đến 5 triệu
+      - tôi muốn mua đồng hồ thể thao nam màu đen giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ phú nam màu vàng giá từ 2 triệu đến 5 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex phú nam màu vàng từ 10 triệu trở lên rating từ 5 sao
+      - tôi muốn mua đồng hồ nữ màu hồng giá dưới 1 triệu
+      - tôi muốn mua đồng hồ nữ màu hồng giá dưới 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ nam màu xanh giá từ 500k đến 1 triệu rating từ 3 sao trở lên
+      - tôi muốn mua đồng hồ nữ màu trắng giá từ 1 triệu đến 2 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ casio nữ màu hồng giá dưới 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ máy pin nam màu đen giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ máy cơ nữ màu bạc giá từ 2 triệu đến 5 triệu
+      - tôi muốn mua đồng hồ máy pin nam màu đen giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ máy cơ nữ màu bạc giá từ 2 triệu đến 5 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ dây da nam màu đen giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ dây kim loại nữ màu bạc giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ dây da nam màu đen giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ dây kim loại nữ màu bạc giá từ 500k đến 1 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ casio nam màu đen máy pin dây da giá từ 500k đến 1 triệu
+      - tôi muốn mua đồng hồ rolex nam màu vàng máy cơ dây kim loại từ 10 triệu trở lên
+      - tôi muốn mua đồng hồ casio nam màu đen máy pin dây da giá từ 500k đến 1 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex nam màu vàng máy cơ dây kim loại từ 10 triệu trở lên rating từ 5 sao
+      - tôi muốn mua đồng hồ nữ màu bạc máy pin dây da giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ nữ màu bạc máy pin dây da giá từ 1 triệu đến 3 triệu rating từ 4 sao trở lên
+      - tôi muốn mua đồng hồ nam máy pin dây kim loại màu đen giá dưới 1 triệu
+      - tôi muốn mua đồng hồ nam máy pin dây kim loại màu đen giá dưới 1 triệu rating từ 3 sao trở lên
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen máy pin giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen máy pin giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex phú nam màu vàng máy cơ từ 10 triệu trở lên rating từ 5 sao
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen máy pin dây da giá từ 1 triệu đến 3 triệu
+      - tôi muốn mua đồng hồ casio thể thao nam màu đen máy pin dây da giá từ 1 triệu đến 3 triệu rating từ 4 sao
+      - tôi muốn mua đồng hồ rolex phú nam màu vàng máy cơ dây kim loại từ 10 triệu trở lên rating từ 5 sao
 
   - intent: search_watches
     examples: |

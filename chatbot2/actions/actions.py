@@ -725,9 +725,14 @@ class ActionSearchProducts(Action):
                 """
                 import re
                 
-                # Skip price parsing if text contains rating-related keywords to avoid conflict
+                # Skip price parsing ONLY if text contains rating-related keywords WITHOUT price keywords
+                # This allows parsing price even when rating is present, as long as price keywords exist
                 text_lower = text.lower()
-                if "sao" in text_lower or "rating" in text_lower or "đánh giá" in text_lower:
+                has_price_keywords = any(kw in text_lower for kw in ["giá", "triệu", "nghìn", "k ", "mua", "còn có"])
+                has_rating_keywords = any(kw in text_lower for kw in ["sao", "rating", "đánh giá"])
+                
+                # Only skip if rating keywords exist but NO price keywords (to avoid false matches)
+                if has_rating_keywords and not has_price_keywords:
                     return None
                 
                 # Remove common words and normalize
@@ -1045,8 +1050,8 @@ class ActionSearchProducts(Action):
                     query_params["strap_material_id__in"] = strap_material.get("id")
                 if gender_code is not None:
                     query_params["gender__in"] = gender_code
-                if rating_min is not None and rating_min > 0:
-                    # Only add rating filter if rating > 0 (0 means "all", no filter)
+                if rating_min is not None:
+                    # Add rating filter even if 0 (rating__gte=0 means all including unrated)
                     query_params["rating__gte"] = rating_min
                 if price_range:
                     min_price, max_price = price_range
